@@ -6,7 +6,7 @@ client_socket_UDP = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 def get_server_address():
     client_socket_UDP.connect(("255.255.255.255",20405))
-    client_socket_UDP.sendto("DISCOVER_MESSAGE")
+    client_socket_UDP.sendto("DISCOVER_MESSAGE","255.255.255.255")
     return client_socket_UDP.recvfrom(1024)
 
 # 2. Connessione al server (IP localhost e porta 12345)
