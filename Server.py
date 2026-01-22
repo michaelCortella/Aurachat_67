@@ -12,13 +12,13 @@ class Server():
                     if addr.family == socket.AF_INET:
                         self.address:str = addr.address
         
-    def discovery_response(self,client_data):
-        self.server_socket_UDP.sendto(self.address.encode(), client_data)
+    def discovery_response(self):
+        socket_data,socket_address = self.server_socket_UDP.recvfrom(1024)
+        self.server_socket_UDP.sendto(self.address.encode(), socket_address)
 
     def start(self):
         self.server_socket_UDP = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.server_socket_UDP.bind(("0.0.0.0", 20405))
-        self.server_socket_UDP.listen(5)
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind((self.address, 20405))#finds the machines ip and connects it to port 60000
         self.server_socket.listen(5)#queues at most 5 clients
@@ -26,8 +26,7 @@ class Server():
     
     def discovery_handle(self):
         while self.active:
-            client_data = self.server_socket_UDP.accept()
-            threading.Thread(target=self.discovery_response,args=(client_data),daemon=True).start
+            threading.Thread(target=self.discovery_response,daemon=True).start
     
     def shutdown(self): #todo
         pass
