@@ -2,9 +2,15 @@ import socket
 
 # 1. Creazione del socket
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket_UDP = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+def get_server_address():
+    client_socket_UDP.connect(("255.255.255.255",20405))
+    return client_socket_UDP.recvfrom(1024)
+
 
 # 2. Connessione al server (IP localhost e porta 12345)
-client_socket.connect(("127.0.0.1", 12345))
+client_socket.connect((get_server_address(), 12345))
 
 uscita = ""
 messaggio = "Ciao server, sono il client!"

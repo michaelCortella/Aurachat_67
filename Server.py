@@ -6,16 +6,30 @@ import psutil
 
 class Server():
     def __init__(self):
+        for iface, addrs in psutil.net_if_addrs().items():
+            if iface.lower() == "ethernet":
+                for addr in addrs:
+                    if addr.family == socket.AF_INET:
+                        self.address:str = addr.address
         
-        pass
+    def discovery_response(self,client_data):
+        self.server_socket_UDP.sendto(self.address.encode(), client_data)
+
     def start(self):
+        self.server_socket_UDP = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.server_socket_UDP.bind(("0.0.0.0", 20405))
+        self.server_socket_UDP.listen(5)
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.bind(("172.16.7.205", 20405))#finds the machines ip and connects it to port 60000
-        print(self.server_socket)
+        self.server_socket.bind((self.address, 20405))#finds the machines ip and connects it to port 60000
         self.server_socket.listen(5)#queues at most 5 clients
         self.active = True
     
-    def shutdown(self):
+    def discovery_handle(self):
+        while self.active:
+            client_data = self.server_socket_UDP.accept()
+            threading.Thread(target=self.discovery_response,args=(client_data),daemon=True).start
+    
+    def shutdown(self): #todo
         pass
 
     def handle_client(self,client_socket):
@@ -24,7 +38,7 @@ class Server():
             if not data:
                 break
             if data == "TIME":
-                client_socket.send(f"{datetime.now().strftime("%h:%m:%s")}".encode())
+                client_socket.send(f"{datetime.now().strftime("%H:%M:%S")}".encode())
             elif data == "NAME":
                 client_socket.send(f"{socket.gethostname()}".encode())
             elif data == "EXIT":
