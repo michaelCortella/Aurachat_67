@@ -1,36 +1,53 @@
 import socket
 import threading
 from datetime import datetime
+import time
+import psutil
 
-def handle_client(client_socket, client_address):
-    print(f"Connessione da {client_address}")
-    while True:
-        data = client_socket.recv(1024).decode()
-        if not data:
-            break
-        if data == "TIME":
-            client_socket.send(f"{datetime.now()}".encode())
-        elif data == "NAME":
-            client_socket.send(f"{socket.gethostname()}".encode())
-        elif data == "EXIT":
-            break
-        else:
-            print(f"Messaggio ricevuto: {data}")
-            client_socket.send(f"Ciao {client_address[0]}, ho ricevuto il tuo messaggio!".encode())
-    print(f"Connessione chiusa con {client_address}")
-    client_socket.close()
+class Server():
+    def __init__(self):
+        
+        pass
+    def start(self):
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_socket.bind(("172.16.7.205", 20405))#finds the machines ip and connects it to port 60000
+        print(self.server_socket)
+        self.server_socket.listen(5)#queues at most 5 clients
+        self.active = True
+    
+    def shutdown(self):
+        pass
 
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.bind(("0.0.0.0", 12345))
-server_socket.listen(5)
-print("Server in ascolto sulla porta 12345...")
+    def handle_client(self,client_socket):
+        while self.active:
+            data = client_socket.recv(1024).decode()
+            if not data:
+                break
+            if data == "TIME":
+                client_socket.send(f"{datetime.now().strftime("%h:%m:%s")}".encode())
+            elif data == "NAME":
+                client_socket.send(f"{socket.gethostname()}".encode())
+            elif data == "EXIT":
+                break
+            else:
+                client_socket.send("comando non riconosciuto".encode())
+        client_socket.shutdown()
+        client_socket.close()
 
-try:
-    while True:
-        client_socket, client_address = server_socket.accept()
-        client_thread = threading.Thread(target=handle_client, args=(client_socket, client_address))
+    def accept_connection(self):
+        client_socket, client_address = self.server_socket.accept() #accepts conection
+        client_socket.settimeout(120)#sets timeout value
+        client_thread = threading.Thread(target=self.handle_client, args=(client_socket,),daemon=True)#makes the server multiclient
         client_thread.start()
-except KeyboardInterrupt:
-    print("Server chiuso")
-finally:
-    server_socket.close()
+
+def main():
+    server = Server()
+    server.start()
+    print("server in ascolto")
+    try:
+        threading.Thread(target=server.accept_connection,daemon=True).start()
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        server.shutdown()
+main()
