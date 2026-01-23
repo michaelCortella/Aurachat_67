@@ -18,15 +18,16 @@ class Server():
 
     def start(self):
         self.server_socket_UDP = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.server_socket_UDP.bind(("0.0.0.0", 20405))
+        self.server_socket_UDP.bind(("", 20405))
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind((self.address, 20405))#finds the machines ip and connects it to port 60000
         self.server_socket.listen(5)#queues at most 5 clients
         self.active = True
+
     
     def discovery_handle(self):
         while self.active:
-            threading.Thread(target=self.discovery_response,daemon=True).start
+            threading.Thread(target=self.discovery_response,daemon=True).start()
     
     def shutdown(self): #todo
         pass
@@ -57,6 +58,7 @@ def main():
     server = Server()
     server.start()
     print("server in ascolto")
+    server.discovery_handle()
     try:
         threading.Thread(target=server.accept_connection,daemon=True).start()
         while True:
