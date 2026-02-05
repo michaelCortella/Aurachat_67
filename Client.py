@@ -1,6 +1,9 @@
 import socket
+<<<<<<< HEAD
 import time
 import psutil
+=======
+>>>>>>> parent of e2af4f4 (memory and network usage fixes)
 
 # 1. Creazione del socket
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -8,8 +11,12 @@ client_socket_UDP = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 client_socket_UDP.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
 def get_server_address():
+<<<<<<< HEAD
     client_socket_UDP.connect(("255.255.255.255",20405))
     client_socket_UDP.sendto("DISCOVER_MESSAGE".encode(),("255.255.255.255",20405))
+=======
+    client_socket_UDP.sendto("GETSERVERIP".encode(),("255.255.255.255",20405))
+>>>>>>> parent of e2af4f4 (memory and network usage fixes)
     return client_socket_UDP.recvfrom(1024)
 
 # 2. Connessione al server (IP localhost e porta 12345)
