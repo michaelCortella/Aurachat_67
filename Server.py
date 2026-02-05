@@ -30,9 +30,6 @@ class Server():
         self.server_socket.bind((self.address, 20405))#finds the machines ip and connects it to port 60000
         self.server_socket.listen(5)#queues at most 5 clients
         self.active = True
-
-    
-    
     
     def shutdown(self): #todo
         pass
