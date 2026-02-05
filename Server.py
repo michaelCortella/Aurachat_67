@@ -14,14 +14,12 @@ class Server():
         
     def discovery_response(self):
         socket_data,socket_address = self.server_socket_UDP.recvfrom(1024)
-        if socket_data == b"GETSERVERIP":
+        if socket_data == "GETSERVERIP":
             self.server_socket_UDP.sendto(self.address.encode(), socket_address)
 
     def discovery_handle(self):
         while self.active:
-                thread = threading.Thread(target=self.discovery_response,daemon=True)
-                thread.start()
-                thread.join()
+            threading.Thread(target=self.discovery_response,daemon=True).start()
 
     def start(self):
         self.server_socket_UDP = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -61,8 +59,8 @@ def main():
     server = Server()
     server.start()
     print("server in ascolto")
+    server.discovery_handle()
     try:
-        server.discovery_handle()
         threading.Thread(target=server.accept_connection,daemon=True).start()
         while True:
             time.sleep(1)
