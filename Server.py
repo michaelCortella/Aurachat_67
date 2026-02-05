@@ -13,9 +13,9 @@ class Server():
                         self.address:str = addr.address
         
     def discovery_response(self):
-        socket_data,socket_address = self.server_socket_UDP.recvfrom(1024)
-        if socket_data == b"GETSERVERIP":
-            self.server_socket_UDP.sendto(self.address.encode(), socket_address)
+        socket_data ,socket_address = self.server_socket_UDP.recvfrom(1024)
+        if socket_data != b"":
+            self.server_socket_UDP.sendto(self.address.encode(), (socket_data.decode(),50402))
 
     def discovery_handle(self):
         while self.active:
@@ -25,9 +25,9 @@ class Server():
 
     def start(self):
         self.server_socket_UDP = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.server_socket_UDP.bind(("0.0.0.0", 20405))
+        self.server_socket_UDP.bind(("0.0.0.0", 50402))
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.bind((self.address, 20405))#finds the machines ip and connects it to port 60000
+        self.server_socket.bind((self.address, 20405))
         self.server_socket.listen(5)#queues at most 5 clients
         self.active = True
     
@@ -37,8 +37,9 @@ class Server():
     def handle_client(self,client_socket):
         while self.active:
             data = client_socket.recv(1024).decode()
+            print("messaggio ricevuto")
             if not data:
-                break
+                print("messaggio vuoto")
             if data == "TIME":
                 client_socket.send(f"{datetime.now().strftime("%H:%M:%S")}".encode())
             elif data == "NAME":
@@ -50,11 +51,16 @@ class Server():
         client_socket.shutdown()
         client_socket.close()
 
+
+
     def accept_connection(self):
         while self.active:
             client_socket, client_address = self.server_socket.accept() #accepts conection
+            print("Connessione riusc")
+            print(client_socket)
             client_socket.settimeout(120)#sets timeout value
             client_thread = threading.Thread(target=self.handle_client, args=(client_socket,),daemon=True)#makes the server multiclient
+            print("nouvo client connesso")
             client_thread.start()
 
 def main():
