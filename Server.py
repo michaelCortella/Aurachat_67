@@ -13,19 +13,14 @@ class Server():
                         self.address:str = addr.address
         
     def discovery_response(self):
-<<<<<<< HEAD
-        socket_data ,socket_address = self.server_socket_UDP.recvfrom(1024)
-        if socket_data != b"":
-            self.server_socket_UDP.sendto(self.address.encode(), (socket_data.decode(),50402))
-=======
-        socket_data,socket_address = self.server_socket_UDP.recvfrom(1024)
-        if socket_data == "GETSERVERIP":
-            self.server_socket_UDP.sendto(self.address.encode(), socket_address)
->>>>>>> e2f5c726fa72cd9cba6c3d290b899f2ddc5de26a
-
-    def discovery_handle(self):
         while self.active:
-            threading.Thread(target=self.discovery_response,daemon=True).start()
+            try:
+                socket_data ,socket_address = self.server_socket_UDP.recvfrom(1024)
+                if socket_data != b"":
+                    self.server_socket_UDP.sendto(self.address.encode(), (socket_data.decode(),50402))
+            except ConnectionResetError:
+                pass
+    
 
     def start(self):
         self.server_socket_UDP = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -40,18 +35,18 @@ class Server():
 
     def handle_client(self,client_socket):
         while self.active:
-            data = client_socket.recv(1024).decode()
-            print("messaggio ricevuto")
-            if not data:
-                print("messaggio vuoto")
-            if data == "TIME":
-                client_socket.send(f"{datetime.now().strftime("%H:%M:%S")}".encode())
-            elif data == "NAME":
-                client_socket.send(f"{socket.gethostname()}".encode())
-            elif data == "EXIT":
-                break
-            else:
-                client_socket.send("comando non riconosciuto".encode())
+                data = client_socket.recv(1024).decode()
+                print("messaggio ricevuto")
+                if not data:
+                    print("messaggio vuoto")
+                if data == "TIME":
+                    client_socket.send(f"{datetime.now().strftime("%H:%M:%S")}".encode())
+                elif data == "NAME":
+                    client_socket.send(f"{socket.gethostname()}".encode())
+                elif data == "EXIT":
+                    client_socket.send(f"closed")
+                else:
+                    client_socket.send("comando non riconosciuto".encode())
         client_socket.shutdown()
         client_socket.close()
 
@@ -60,20 +55,20 @@ class Server():
     def accept_connection(self):
         while self.active:
             client_socket, client_address = self.server_socket.accept() #accepts conection
-            print("Connessione riusc")
             print(client_socket)
             client_socket.settimeout(120)#sets timeout value
             client_thread = threading.Thread(target=self.handle_client, args=(client_socket,),daemon=True)#makes the server multiclient
-            print("nouvo client connesso")
             client_thread.start()
 
 def main():
     server = Server()
     server.start()
     print("server in ascolto")
-    server.discovery_handle()
+    discovery = threading.Thread(target=server.discovery_response,daemon=True)
+    discovery.start()
     try:
-        threading.Thread(target=server.accept_connection,daemon=True).start()
+        acceptance = threading.Thread(target=server.accept_connection,daemon=True)
+        acceptance.start()
         while True:
             time.sleep(1)
     except KeyboardInterrupt:

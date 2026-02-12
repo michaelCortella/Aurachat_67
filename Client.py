@@ -1,6 +1,7 @@
 import socket
 import time
 import psutil
+import threading
 # 1. Creazione del socket
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket_UDP = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -25,24 +26,21 @@ def get_server_address():
 
 client_socket.connect((get_server_address().strip(), 20405))
 uscita = ""
-while uscita != "EXIT":
-    messaggio = input("Inserire il nuovo messaggio da mandare, digitare \"EXIT\" per uscire: ")
+def connessione():
+    while uscita != "EXIT":
+        messaggio = input("Inserire il nuovo messaggio da mandare, digitare \"EXIT\" per uscire: ")
 
-    uscita = messaggio
-    # 3. Invio di un messaggio
-    client_socket.send(messaggio.encode())
-    print("messaggio inviato")
-    print(messaggio)
-    # 4. Ricezione risposta
-    data = client_socket.recv(1024).decode()
-    print("messaggio ricevuto")
-    if data.lower() == "closed":
-        break
-
-    print(f"Risposta dal server: {data}")
-    uscita = messaggio
+        uscita = messaggio
+        # 3. Invio di un messaggio
+        client_socket.send(messaggio.encode())
+        # 4. Ricezione risposta
+        data = client_socket.recv(1024).decode()
+        if data.lower() == "closed":
+            client_socket.shutdown()
+            client_socket.close()
+            break
+        print(f"Risposta dal server: {data}")
+        uscita = messaggio
 
 # 5. Chiusura connessione
-print("Socket chiuso")
-input()
-client_socket.close()
+t = threading.Thread(target=connessione, args=(), daemon=True).start()
