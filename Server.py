@@ -35,7 +35,8 @@ class Server():
 
     def handle_client(self,client_socket):
         while self.active:
-                data = client_socket.recv(1024).decode()
+            try:
+                data = client_socket.recv(1024).decode().upper()
                 print("messaggio ricevuto")
                 if not data:
                     print("messaggio vuoto")
@@ -44,9 +45,11 @@ class Server():
                 elif data == "NAME":
                     client_socket.send(f"{socket.gethostname()}".encode())
                 elif data == "EXIT":
-                    client_socket.send(f"closed")
+                    client_socket.send(f"closed".encode())
                 else:
                     client_socket.send("comando non riconosciuto".encode())
+            except ConnectionError:
+                print("errore")
         client_socket.shutdown()
         client_socket.close()
 

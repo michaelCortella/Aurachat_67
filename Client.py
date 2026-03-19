@@ -25,22 +25,27 @@ def get_server_address():
 
 
 client_socket.connect((get_server_address().strip(), 20405))
-uscita = ""
+
 def connessione():
+    uscita = ""
     while uscita != "EXIT":
-        messaggio = input("Inserire il nuovo messaggio da mandare, digitare \"EXIT\" per uscire: ")
-
-        uscita = messaggio
-        # 3. Invio di un messaggio
-        client_socket.send(messaggio.encode())
-        # 4. Ricezione risposta
-        data = client_socket.recv(1024).decode()
-        if data.lower() == "closed":
-            client_socket.shutdown()
-            client_socket.close()
-            break
-        print(f"Risposta dal server: {data}")
-        uscita = messaggio
-
+        try:
+            messaggio = input("Inserire il nuovo messaggio da mandare, digitare \"EXIT\" per uscire: ")
+            uscita = messaggio
+            # 3. Invio di un messaggio
+            client_socket.send(messaggio.encode())
+            # 4. Ricezione risposta
+            data = client_socket.recv(1024).decode()
+            if data.lower() == "closed":
+                client_socket.shutdown()
+                client_socket.close()
+                break
+            print(f"Risposta dal server: {data}")
+        except Exception:
+             print("errore")
+             pass
 # 5. Chiusura connessione
-t = threading.Thread(target=connessione, args=(), daemon=True).start()
+try:
+    connessione()
+except KeyboardInterrupt:
+    pass
